@@ -3,12 +3,13 @@
 import asyncio
 import os
 import sys
+import selectors
 from logging.config import fileConfig
 from pathlib import Path
 
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
-from sqlalchemy.ext.asyncio import async_engine_from_config
+from sqlalchemy.ext.asyncio import async_engine_from_config, create_async_engine
 
 from alembic import context
 
@@ -29,11 +30,11 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Set the sqlalchemy.url from environment variable
-config.set_main_option("sqlalchemy.url", settings.database_url)
-
 # Set target_metadata for autogenerate support
 target_metadata = Base.metadata
+
+# Store database URL for later use (to avoid ConfigParser issues with special characters)
+database_url = settings.database_url
 
 
 def run_migrations_offline() -> None:
@@ -48,9 +49,8 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
     context.configure(
-        url=url,
+        url=database_url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -73,9 +73,8 @@ async def run_async_migrations() -> None:
     and associate a connection with the context.
     """
 
-    connectable = async_engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
+    connectable = create_async_engine(
+        database_url,
         poolclass=pool.NullPool,
     )
 
@@ -88,7 +87,11 @@ async def run_async_migrations() -> None:
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
 
-    asyncio.run(run_async_migrations())
+    # On Windows, psycopg3 requires a SelectorEventLoop instead of ProactorEventLoop
+    if sys.platform == "win32":
+        asyncio.run(run_async_migrations(), loop_factory=asyncio.SelectorEventLoop)
+    else:
+        asyncio.run(run_async_migrations())
 
 
 if context.is_offline_mode():

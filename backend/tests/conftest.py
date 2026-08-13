@@ -7,6 +7,9 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
+# Configure pytest-asyncio
+pytest_plugins = ('pytest_asyncio',)
+
 # Add backend to path
 backend_path = str(Path(__file__).parent.parent)
 sys.path.insert(0, backend_path)

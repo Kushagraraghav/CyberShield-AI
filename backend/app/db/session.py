@@ -3,6 +3,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import NullPool
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
 from app.core.config import settings
 from app.core.logging import get_logger
@@ -10,18 +11,34 @@ from app.core.logging import get_logger
 logger = get_logger(__name__)
 
 
-# Create SQLAlchemy engine with psycopg driver
+# Synchronous engine for sync contexts (if needed)
 engine = create_engine(
     settings.database_url,
     echo=settings.debug,
     poolclass=NullPool,  # Use NullPool for better compatibility with async contexts
 )
 
-# Create session factory
+# Async engine for async contexts
+async_engine = create_async_engine(
+    settings.database_url,
+    echo=settings.debug,
+    poolclass=NullPool,
+)
+
+# Synchronous session factory
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
     bind=engine,
+)
+
+# Async session factory
+AsyncSessionLocal = async_sessionmaker(
+    async_engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+    autocommit=False,
+    autoflush=False,
 )
 
 
