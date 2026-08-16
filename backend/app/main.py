@@ -1,14 +1,13 @@
-"""FastAPI application factory and setup."""
+﻿"""FastAPI application factory and setup."""
+
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
 
+from app.api.v1.router import router as api_v1_router
 from app.core.config import settings
 from app.core.logging import setup_logging, get_logger
-from app.api.v1.router import router as api_v1_router
-from app.db.session import engine
-from app.db.base import Base
 
 logger = get_logger(__name__)
 
@@ -16,24 +15,16 @@ logger = get_logger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan context manager."""
-    # Startup
     logger.info(f"Starting {settings.app_name} in {settings.app_env} mode")
     yield
-    # Shutdown
     logger.info(f"Shutting down {settings.app_name}")
 
 
 def create_app() -> FastAPI:
-    """
-    Create and configure FastAPI application.
-    
-    Returns:
-        FastAPI: Configured FastAPI application instance.
-    """
-    # Setup logging
+    """Create and configure FastAPI application."""
+
     setup_logging()
 
-    # Create FastAPI app
     app = FastAPI(
         title=settings.app_name,
         description="AI-Assisted SOC and Digital Forensics Platform",
@@ -42,7 +33,6 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # Configure CORS
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[settings.frontend_url],
@@ -51,10 +41,9 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # Include API v1 routes
+    # Register the complete API v1 router
     app.include_router(api_v1_router)
 
-    # Root endpoint
     @app.get("/")
     async def root():
         """Root endpoint."""
@@ -68,5 +57,4 @@ def create_app() -> FastAPI:
     return app
 
 
-# Create application instance
 app = create_app()

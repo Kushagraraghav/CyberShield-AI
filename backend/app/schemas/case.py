@@ -1,4 +1,4 @@
-"""Case schemas."""
+﻿"""Case schemas."""
 
 from datetime import datetime
 from uuid import UUID
@@ -13,8 +13,8 @@ class CaseCreate(BaseModel):
     case_number: str = Field(..., max_length=100)
     title: str = Field(..., min_length=1, max_length=255)
     description: str | None = Field(None, max_length=2000)
-    status: str = Field(default="open", regex="^(open|investigating|closed|archived)$")
-    priority: str = Field(default="medium", regex="^(low|medium|high|critical)$")
+    status: str = Field(default="open", pattern="^(open|investigating|closed|archived)$")
+    priority: str = Field(default="medium", pattern="^(low|medium|high|critical)$")
 
 
 class CaseUpdate(BaseModel):
@@ -22,8 +22,8 @@ class CaseUpdate(BaseModel):
 
     title: str | None = Field(None, max_length=255)
     description: str | None = Field(None, max_length=2000)
-    status: str | None = Field(None, regex="^(open|investigating|closed|archived)$")
-    priority: str | None = Field(None, regex="^(low|medium|high|critical)$")
+    status: str | None = Field(None, pattern="^(open|investigating|closed|archived)$")
+    priority: str | None = Field(None, pattern="^(low|medium|high|critical)$")
 
 
 class CaseResponse(BaseModel):
@@ -47,3 +47,4 @@ class CaseDetailResponse(CaseResponse):
     """Detailed case response schema."""
 
     pass
+

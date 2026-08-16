@@ -1,4 +1,4 @@
-"""Threat indicator schemas."""
+﻿"""Threat indicator schemas."""
 
 from datetime import datetime
 from uuid import UUID
@@ -10,10 +10,10 @@ class ThreatIndicatorCreate(BaseModel):
     """Threat indicator creation schema."""
 
     organization_id: UUID
-    indicator_type: str = Field(..., regex="^(ip|domain|url|hash|email)$")
+    indicator_type: str = Field(..., pattern="^(ip|domain|url|hash|email)$")
     indicator_value: str = Field(..., min_length=1, max_length=500)
     confidence: int = Field(default=0, ge=0, le=100)
-    severity: str = Field(default="medium", regex="^(low|medium|high|critical)$")
+    severity: str = Field(default="medium", pattern="^(low|medium|high|critical)$")
     source: str | None = Field(None, max_length=255)
     first_seen: datetime
 
@@ -22,7 +22,7 @@ class ThreatIndicatorUpdate(BaseModel):
     """Threat indicator update schema."""
 
     confidence: int | None = Field(None, ge=0, le=100)
-    severity: str | None = Field(None, regex="^(low|medium|high|critical)$")
+    severity: str | None = Field(None, pattern="^(low|medium|high|critical)$")
     is_active: bool | None = None
     last_seen: datetime | None = None
 
@@ -50,3 +50,4 @@ class ThreatIndicatorDetailResponse(ThreatIndicatorResponse):
     """Detailed threat indicator response schema."""
 
     pass
+

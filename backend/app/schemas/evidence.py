@@ -1,4 +1,4 @@
-"""Evidence schemas."""
+﻿"""Evidence schemas."""
 
 from datetime import datetime
 from uuid import UUID
@@ -15,7 +15,7 @@ class EvidenceCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: str | None = Field(None, max_length=2000)
     evidence_type: str = Field(
-        ..., regex="^(disk_image|memory_dump|log|document|network_capture|executable|other)$"
+        ..., pattern="^(disk_image|memory_dump|log|document|network_capture|executable|other)$"
     )
     file_name: str | None = Field(None, max_length=500)
     file_size: int | None = None
@@ -32,7 +32,7 @@ class EvidenceUpdate(BaseModel):
     name: str | None = Field(None, max_length=255)
     description: str | None = Field(None, max_length=2000)
     evidence_type: str | None = Field(
-        None, regex="^(disk_image|memory_dump|log|document|network_capture|executable|other)$"
+        None, pattern="^(disk_image|memory_dump|log|document|network_capture|executable|other)$"
     )
 
 
@@ -62,3 +62,4 @@ class EvidenceDetailResponse(EvidenceResponse):
     """Detailed evidence response schema."""
 
     pass
+

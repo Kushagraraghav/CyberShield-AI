@@ -1,4 +1,4 @@
-"""Alert schemas."""
+﻿"""Alert schemas."""
 
 from datetime import datetime
 from uuid import UUID
@@ -13,8 +13,8 @@ class AlertCreate(BaseModel):
     incident_id: UUID | None = None
     title: str = Field(..., min_length=1, max_length=255)
     description: str | None = Field(None, max_length=2000)
-    severity: str = Field(default="medium", regex="^(low|medium|high|critical)$")
-    status: str = Field(default="new", regex="^(new|acknowledged|investigating|resolved|dismissed)$")
+    severity: str = Field(default="medium", pattern="^(low|medium|high|critical)$")
+    status: str = Field(default="new", pattern="^(new|acknowledged|investigating|resolved|dismissed)$")
     source: str | None = Field(None, max_length=255)
     source_event_id: str | None = Field(None, max_length=500)
     detected_at: datetime
@@ -25,8 +25,8 @@ class AlertUpdate(BaseModel):
 
     title: str | None = Field(None, max_length=255)
     description: str | None = Field(None, max_length=2000)
-    severity: str | None = Field(None, regex="^(low|medium|high|critical)$")
-    status: str | None = Field(None, regex="^(new|acknowledged|investigating|resolved|dismissed)$")
+    severity: str | None = Field(None, pattern="^(low|medium|high|critical)$")
+    status: str | None = Field(None, pattern="^(new|acknowledged|investigating|resolved|dismissed)$")
     acknowledged_at: datetime | None = None
     resolved_at: datetime | None = None
 
@@ -56,3 +56,4 @@ class AlertDetailResponse(AlertResponse):
     """Detailed alert response schema."""
 
     pass
+
