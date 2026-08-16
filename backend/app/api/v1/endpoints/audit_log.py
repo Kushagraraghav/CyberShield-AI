@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.v1.dependencies import require_viewer, require_audit_log_viewer
+from app.api.v1.dependencies import require_audit_log_org_viewer, require_audit_log_viewer
 from app.db.session import get_db
 from app.models.user import User
 from app.models.audit_log import AuditLog
@@ -27,7 +27,7 @@ def list_audit_logs(
     user_id: UUID | None = None,
     resource_type: str | None = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_audit_log_viewer),
+    current_user: User = Depends(require_audit_log_org_viewer),
 ):
     """List audit logs with optional filters."""
 

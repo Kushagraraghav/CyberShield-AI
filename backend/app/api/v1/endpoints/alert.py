@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.v1.dependencies import require_viewer, require_analyst
+from app.api.v1.dependencies import require_viewer, require_analyst, require_alert_viewer, require_alert_analyst
 from app.db.session import get_db
 from app.models.alert import Alert
 from app.models.user import User
@@ -87,7 +87,7 @@ def list_alerts(
 def get_alert(
     alert_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_viewer),
+    current_user: User = Depends(require_alert_viewer),
 ):
     """Return an alert by ID."""
 
@@ -110,7 +110,7 @@ def update_alert(
     alert_id: UUID,
     alert_data: AlertUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_analyst),
+    current_user: User = Depends(require_alert_analyst),
 ):
     """Update an alert."""
 
@@ -146,7 +146,7 @@ def update_alert(
 def delete_alert(
     alert_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_analyst),
+    current_user: User = Depends(require_alert_analyst),
 ):
     """Delete an alert."""
 

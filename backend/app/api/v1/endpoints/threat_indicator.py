@@ -6,7 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.v1.dependencies import require_indicator_viewer, require_indicator_analyst
+from app.api.v1.dependencies import require_indicator_viewer, require_indicator_analyst, require_indicator_org_viewer, require_indicator_org_analyst
+from app.api.v1.endpoints.auth import get_current_user
 from app.models.user import User
 from app.db.session import get_db
 from app.models.threat_indicator import ThreatIndicator
@@ -30,7 +31,7 @@ router = APIRouter(
 def create_threat_indicator(
     indicator_data: ThreatIndicatorCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_indicator_analyst),
+    current_user: User = Depends(get_current_user),
 ):
     """Create a new threat indicator."""
 
@@ -61,7 +62,7 @@ def list_threat_indicators(
     indicator_type: str | None = None,
     is_active: bool | None = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_indicator_viewer),
+    current_user: User = Depends(get_current_user),
 ):
     """List threat indicators with optional filters."""
 
@@ -96,7 +97,7 @@ def list_threat_indicators(
 def get_threat_indicator(
     indicator_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_indicator_viewer),
+    current_user: User = Depends(get_current_user),
 ):
     """Return a threat indicator by ID."""
 
@@ -119,7 +120,7 @@ def update_threat_indicator(
     indicator_id: UUID,
     indicator_data: ThreatIndicatorUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_indicator_analyst),
+    current_user: User = Depends(get_current_user),
 ):
     """Update a threat indicator."""
 
@@ -165,7 +166,3 @@ def delete_threat_indicator(
     db.commit()
 
     return None
-
-
-
-

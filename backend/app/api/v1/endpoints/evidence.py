@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.v1.dependencies import require_case_analyst, require_case_viewer
+from app.api.v1.dependencies import require_case_analyst, require_case_viewer, require_evidence_viewer, require_evidence_analyst
 from app.db.session import get_db
 from app.models.evidence import Evidence
 from app.models.user import User
@@ -106,7 +106,7 @@ def list_evidence(
 def get_evidence(
     evidence_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_case_viewer),
+    current_user: User = Depends(require_evidence_viewer),
 ):
     """Get evidence by ID."""
 
@@ -129,7 +129,7 @@ def update_evidence(
     evidence_id: UUID,
     evidence_data: EvidenceUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_case_analyst),
+    current_user: User = Depends(require_evidence_analyst),
 ):
     """Update evidence."""
 
@@ -159,7 +159,7 @@ def update_evidence(
 def delete_evidence(
     evidence_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_case_analyst),
+    current_user: User = Depends(require_evidence_analyst),
 ):
     """Delete evidence."""
 

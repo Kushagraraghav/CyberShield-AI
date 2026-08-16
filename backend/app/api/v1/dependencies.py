@@ -153,6 +153,113 @@ def require_case_analyst(
         db=db,
     )
 
+def require_organization_member_viewer(
+    member_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> User:
+    """Require viewer access to an organization membership."""
+
+    if current_user.is_superuser:
+        return current_user
+
+    member = db.get(OrganizationMember, member_id)
+
+    if member is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Organization membership not found",
+        )
+
+    return require_organization_role(
+        organization_id=member.organization_id,
+        allowed_roles=["admin", "analyst", "investigator", "viewer"],
+        current_user=current_user,
+        db=db,
+    )
+
+
+def require_organization_member_admin(
+    member_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> User:
+    """Require admin access to an organization membership."""
+
+    if current_user.is_superuser:
+        return current_user
+
+    member = db.get(OrganizationMember, member_id)
+
+    if member is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Organization membership not found",
+        )
+
+    return require_organization_role(
+        organization_id=member.organization_id,
+        allowed_roles=["admin"],
+        current_user=current_user,
+        db=db,
+    )
+
+
+def require_evidence_viewer(
+    evidence_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> User:
+    """Require viewer access to evidence."""
+
+    if current_user.is_superuser:
+        return current_user
+
+    from app.models.evidence import Evidence
+
+    evidence = db.get(Evidence, evidence_id)
+
+    if evidence is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Evidence not found",
+        )
+
+    return require_organization_role(
+        organization_id=evidence.organization_id,
+        allowed_roles=["admin", "analyst", "investigator", "viewer"],
+        current_user=current_user,
+        db=db,
+    )
+
+
+def require_evidence_analyst(
+    evidence_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> User:
+    """Require analyst access to evidence."""
+
+    if current_user.is_superuser:
+        return current_user
+
+    from app.models.evidence import Evidence
+
+    evidence = db.get(Evidence, evidence_id)
+
+    if evidence is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
+    return require_organization_role(
+        organization_id=evidence.organization_id,
+        allowed_roles=["admin", "analyst"],
+        current_user=current_user,
+        db=db,
+    )
+
+
 def require_alert_viewer(
     alert_id: UUID,
     current_user: User = Depends(get_current_user),
@@ -221,6 +328,36 @@ def require_superuser(
 
     return current_user
 
+def require_indicator_org_viewer(
+    organization_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> User:
+    """Require viewer-level access to a threat indicator organization."""
+
+    return require_organization_role(
+        organization_id=organization_id,
+        allowed_roles=["admin", "analyst", "investigator", "viewer"],
+        current_user=current_user,
+        db=db,
+    )
+
+
+def require_indicator_org_analyst(
+    organization_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> User:
+    """Require analyst-level access to a threat indicator organization."""
+
+    return require_organization_role(
+        organization_id=organization_id,
+        allowed_roles=["admin", "analyst"],
+        current_user=current_user,
+        db=db,
+    )
+
+
 def require_indicator_viewer(
     indicator_id: UUID,
     current_user: User = Depends(get_current_user),
@@ -276,6 +413,21 @@ def require_indicator_analyst(
         db=db,
     )
 
+def require_audit_log_org_viewer(
+    organization_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> User:
+    """Require viewer-level access to an audit log organization."""
+
+    return require_organization_role(
+        organization_id=organization_id,
+        allowed_roles=["admin", "analyst", "investigator", "viewer"],
+        current_user=current_user,
+        db=db,
+    )
+
+
 def require_audit_log_viewer(
     audit_log_id: UUID,
     current_user: User = Depends(get_current_user),
@@ -299,6 +451,61 @@ def require_audit_log_viewer(
     return require_organization_role(
         organization_id=audit_log.organization_id,
         allowed_roles=["admin", "analyst", "investigator", "viewer"],
+        current_user=current_user,
+        db=db,
+    )
+
+def require_incident_viewer(
+    incident_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> User:
+    """Require viewer-level access to an incident."""
+
+    from app.models.incident import Incident
+
+    if current_user.is_superuser:
+        return current_user
+
+    incident = db.get(Incident, incident_id)
+
+    if incident is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Incident not found",
+        )
+
+    return require_organization_role(
+        organization_id=incident.organization_id,
+        allowed_roles=["admin", "analyst", "investigator", "viewer"],
+        current_user=current_user,
+        db=db,
+    )
+
+
+def require_incident_analyst(
+    incident_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> User:
+    """Require analyst-level access to an incident."""
+
+    from app.models.incident import Incident
+
+    if current_user.is_superuser:
+        return current_user
+
+    incident = db.get(Incident, incident_id)
+
+    if incident is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Incident not found",
+        )
+
+    return require_organization_role(
+        organization_id=incident.organization_id,
+        allowed_roles=["admin", "analyst"],
         current_user=current_user,
         db=db,
     )

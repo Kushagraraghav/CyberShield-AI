@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.v1.dependencies import require_admin, require_viewer
+from app.api.v1.dependencies import require_admin, require_viewer, require_organization_member_viewer, require_organization_member_admin
 from app.api.v1.endpoints.auth import get_current_user
 from app.db.session import get_db
 from app.models.organization_member import OrganizationMember
@@ -32,7 +32,7 @@ router = APIRouter(
 def create_organization_member(
     data: OrganizationMemberCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(require_organization_member_admin),
 ):
     """Add a user to an organization."""
 
@@ -86,7 +86,7 @@ def create_organization_member(
 def list_organization_members(
     organization_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_viewer),
+    current_user: User = Depends(require_organization_member_viewer),
 ):
     """List organization memberships."""
 
@@ -104,7 +104,7 @@ def list_organization_members(
 def get_organization_member(
     member_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_viewer),
+    current_user: User = Depends(require_organization_member_viewer),
 ):
     """Get a specific organization membership."""
 
@@ -127,7 +127,7 @@ def update_organization_member(
     member_id: UUID,
     data: OrganizationMemberUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(require_organization_member_admin),
 ):
     """Update an organization member's role."""
 
@@ -154,7 +154,7 @@ def update_organization_member(
 def delete_organization_member(
     member_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(require_organization_member_admin),
 ):
     """Remove a user from an organization."""
 

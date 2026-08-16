@@ -10,8 +10,8 @@ from sqlalchemy.orm import Session
 from app.api.v1.dependencies import (
     require_viewer,
     require_analyst,
-    require_case_viewer,
-    require_case_analyst,
+    require_incident_viewer,
+    require_incident_analyst,
 )
 from app.db.session import get_db
 from app.models.incident import Incident
@@ -92,7 +92,7 @@ def list_incidents(
 def get_incident(
     incident_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_case_viewer),
+    current_user: User = Depends(require_incident_viewer),
 ):
     """Return an incident by ID."""
 
@@ -115,7 +115,7 @@ def update_incident(
     incident_id: UUID,
     incident_data: IncidentUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_case_analyst),
+    current_user: User = Depends(require_incident_analyst),
 ):
     """Update an incident."""
 
@@ -148,7 +148,7 @@ def update_incident(
 def delete_incident(
     incident_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_case_analyst),
+    current_user: User = Depends(require_incident_analyst),
 ):
     """Delete an incident."""
 
