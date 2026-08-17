@@ -54,6 +54,9 @@ class Case(Base):
     evidence: Mapped[list["Evidence"]] = relationship(
         back_populates="case", cascade="all, delete-orphan"
     )
+    malware_samples: Mapped[list["MalwareSample"]] = relationship(
+        back_populates="case", cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:
         return f"<Case(id={self.id}, case_number={self.case_number}, title={self.title})>"

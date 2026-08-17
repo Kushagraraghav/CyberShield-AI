@@ -47,6 +47,9 @@ class Organization(Base):
     audit_logs: Mapped[list["AuditLog"]] = relationship(
         back_populates="organization", cascade="all, delete-orphan"
     )
+    malware_samples: Mapped[list["MalwareSample"]] = relationship(
+        back_populates="organization", cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:
         return f"<Organization(id={self.id}, name={self.name})>"

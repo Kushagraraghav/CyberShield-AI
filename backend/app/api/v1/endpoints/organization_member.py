@@ -3,19 +3,20 @@
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.v1.dependencies import require_admin, require_viewer, require_organization_member_viewer, require_organization_member_admin
-from app.api.v1.endpoints.auth import get_current_user
+from app.api.v1.dependencies import (
+    require_organization_member_admin,
+    require_organization_member_viewer,
+)
 from app.db.session import get_db
+from app.models.organization import Organization
 from app.models.organization_member import OrganizationMember
 from app.models.user import User
-from app.models.organization import Organization
 from app.schemas.organization_member import (
     OrganizationMemberCreate,
-    OrganizationMemberUpdate,
     OrganizationMemberResponse,
+    OrganizationMemberUpdate,
 )
 
 router = APIRouter(
@@ -37,6 +38,7 @@ def create_organization_member(
     """Add a user to an organization."""
 
     user = db.get(User, data.user_id)
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -44,6 +46,7 @@ def create_organization_member(
         )
 
     organization = db.get(Organization, data.organization_id)
+
     if not organization:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -94,7 +97,9 @@ def list_organization_members(
         OrganizationMember.organization_id == organization_id
     )
 
-    return query.order_by(OrganizationMember.created_at.desc()).all()
+    return query.order_by(
+        OrganizationMember.created_at.desc()
+    ).all()
 
 
 @router.get(
@@ -170,5 +175,3 @@ def delete_organization_member(
     db.commit()
 
     return None
-
-

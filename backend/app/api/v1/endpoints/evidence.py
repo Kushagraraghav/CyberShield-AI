@@ -1,8 +1,7 @@
-﻿"""Evidence API endpoints."""
-
+from pathlib import Path
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -10,6 +9,9 @@ from app.api.v1.dependencies import require_case_analyst, require_case_viewer, r
 from app.db.session import get_db
 from app.models.evidence import Evidence
 from app.models.user import User
+from app.utils.file_storage import save_evidence_file
+from app.utils.file_hash import calculate_file_hashes
+
 from app.schemas.evidence import (
     EvidenceCreate,
     EvidenceDetailResponse,
@@ -25,16 +27,23 @@ router = APIRouter(prefix="/evidence", tags=["Evidence"])
     response_model=EvidenceResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def create_evidence(
-    evidence_data: EvidenceCreate,
+async def create_evidence(
+    case_id: UUID,
+    organization_id: UUID = Form(...),
+    evidence_number: str = Form(...),
+    name: str = Form(...),
+    evidence_type: str = Form(...),
+    collected_at: str = Form(...),
+    description: str | None = Form(None),
+    file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_case_analyst),
 ):
-    """Create a new evidence record."""
+    """Create an evidence record from an uploaded file."""
 
     existing = db.scalar(
         select(Evidence).where(
-            Evidence.evidence_number == evidence_data.evidence_number
+            Evidence.evidence_number == evidence_number
         )
     )
 
@@ -44,21 +53,31 @@ def create_evidence(
             detail="Evidence with this evidence number already exists",
         )
 
+    evidence_id = uuid4()
+
+    storage_path, file_size = await save_evidence_file(
+        file=file,
+        organization_id=organization_id,
+        evidence_id=evidence_id,
+    )
+
+    sha256_hash, md5_hash = calculate_file_hashes(storage_path)
+
     evidence = Evidence(
-        id=uuid4(),
-        case_id=evidence_data.case_id,
-        organization_id=evidence_data.organization_id,
-        evidence_number=evidence_data.evidence_number,
-        name=evidence_data.name,
-        description=evidence_data.description,
-        evidence_type=evidence_data.evidence_type,
-        file_name=evidence_data.file_name,
-        file_size=evidence_data.file_size,
-        sha256_hash=evidence_data.sha256_hash,
-        md5_hash=evidence_data.md5_hash,
-        storage_path=evidence_data.storage_path,
-        collected_at=evidence_data.collected_at,
-        collected_by=evidence_data.collected_by,
+        id=evidence_id,
+        case_id=case_id,
+        organization_id=organization_id,
+        evidence_number=evidence_number,
+        name=name,
+        description=description,
+        evidence_type=evidence_type,
+        file_name=file.filename,
+        file_size=file_size,
+        sha256_hash=sha256_hash,
+        md5_hash=md5_hash,
+        storage_path=str(storage_path),
+        collected_at=collected_at,
+        collected_by=current_user.id,
     )
 
     db.add(evidence)
@@ -76,27 +95,30 @@ def list_evidence(
     organization_id: UUID | None = None,
     case_id: UUID | None = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_case_viewer),
+    current_user: User = Depends(require_evidence_viewer),
 ):
-    """List evidence records."""
+    """List evidence."""
 
-    if organization_id is None and case_id is None:
+    if case_id is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="organization_id or case_id is required",
+            detail="case_id is required",
         )
 
-    query = select(Evidence).order_by(Evidence.created_at.desc())
+    query = (
+        select(Evidence)
+        .where(Evidence.case_id == case_id)
+        .order_by(Evidence.created_at.desc())
+    )
 
-    if organization_id:
-        query = query.where(Evidence.organization_id == organization_id)
+    if organization_id is not None:
+        query = query.where(
+            Evidence.organization_id == organization_id
+        )
 
-    if case_id:
-        query = query.where(Evidence.case_id == case_id)
+    evidence = db.scalars(query).all()
 
-    evidence_records = db.scalars(query).all()
-
-    return list(evidence_records)
+    return list(evidence)
 
 
 @router.get(
@@ -161,7 +183,7 @@ def delete_evidence(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_evidence_analyst),
 ):
-    """Delete evidence."""
+    """Delete evidence and its stored file."""
 
     evidence = db.get(Evidence, evidence_id)
 
@@ -171,6 +193,14 @@ def delete_evidence(
             detail="Evidence not found",
         )
 
+    # Delete physical file first.
+    if evidence.storage_path:
+        file_path = Path(evidence.storage_path)
+
+        if file_path.exists():
+            file_path.unlink()
+
+    # Delete database record.
     db.delete(evidence)
     db.commit()
 

@@ -16,3 +16,11 @@ from app.models.alert import Alert  # noqa: F401, E402
 from app.models.evidence import Evidence  # noqa: F401, E402
 from app.models.threat_indicator import ThreatIndicator  # noqa: F401, E402
 from app.models.audit_log import AuditLog  # noqa: F401, E402
+from app.models.malware_sample import MalwareSample  # noqa: F401, E402
+
+
+
+from app.models.malware_analysis import MalwareAnalysis  # noqa: F401, E402
+
+from app.models.threat_intelligence_feed import ThreatIntelligenceFeed  # noqa: F401, E402
+

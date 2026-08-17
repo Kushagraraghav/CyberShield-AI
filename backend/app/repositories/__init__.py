@@ -10,6 +10,7 @@ from app.repositories.alert_repository import AlertRepository
 from app.repositories.evidence_repository import EvidenceRepository
 from app.repositories.threat_indicator_repository import ThreatIndicatorRepository
 from app.repositories.audit_log_repository import AuditLogRepository
+from app.repositories.threat_intelligence_feed_repository import ThreatIntelligenceFeedRepository
 
 __all__ = [
     "BaseRepository",
@@ -22,4 +23,5 @@ __all__ = [
     "EvidenceRepository",
     "ThreatIndicatorRepository",
     "AuditLogRepository",
+    "ThreatIntelligenceFeedRepository",
 ]
