@@ -24,3 +24,9 @@ from app.models.malware_analysis import MalwareAnalysis  # noqa: F401, E402
 
 from app.models.threat_intelligence_feed import ThreatIntelligenceFeed  # noqa: F401, E402
 
+
+from app.models.evidence_custody import EvidenceCustody  # noqa: F401, E402
+
+from app.models.evidence_integrity import EvidenceIntegrityVerification  # noqa: F401, E402
+
+from app.models.forensic_timeline_event import ForensicTimelineEvent  # noqa: F401, E402
